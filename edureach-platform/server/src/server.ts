@@ -8,7 +8,12 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-await initializeKnowledgeBase();
+initializeKnowledgeBase().catch((err) => {
+  console.error("KB init error:", err);
+});
+app.get("/", (req, res) => {
+  res.send("EduReach Backend Running 🚀");
+});
 const start = async (): Promise<void> => {
   try {
     // 1. Connect Mongoose (for users collection)
