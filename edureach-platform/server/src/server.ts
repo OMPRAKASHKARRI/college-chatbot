@@ -1,36 +1,30 @@
-import 'dotenv/config'
-import app from "./app.ts";
-import connectDB from "./config/database.config.ts";
-import { initializeKnowledgeBase } from "./services/rag.services.ts";
+import "dotenv/config";
+import app from "./app.js";
+import connectDB from "./config/database.config.js";
+import { initializeKnowledgeBase } from "./services/rag.services.js";
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-initializeKnowledgeBase().catch((err) => {
-  console.error("KB init error:", err);
-});
-app.get("/", (req, res) => {
-  res.send("EduReach Backend Running 🚀");
-});
 const start = async (): Promise<void> => {
   try {
-    // 1. Connect Mongoose (for users collection)
+    // ✅ Connect DB first
     await connectDB();
+    console.log("MongoDB Connected ✅");
 
-    // 2. Index knowledge base if not already done
-    //    First run: loads .txt → splits → embeds → stores in MongoDB
-    //    Subsequent runs: sees data exists, skips
+    // ✅ Initialize KB
     await initializeKnowledgeBase();
+    console.log("Knowledge Base Ready ✅");
 
-    // 3. Start Express
-    app.listen(PORT, () => {
-      console.log(` EduReach Server is running!`);
-      console.log(` URL: http://localhost:${PORT}`);
-      console.log(` Node: ${process.version}`);
-      console.log(` Press Ctrl+C to stop`);
+    // ✅ Root route
+    app.get("/", (_req, res) => {
+      res.send("EduReach Backend Running 🚀");
     });
+
+    // ✅ Start server ONLY ONCE
+    app.listen(PORT, () => {
+      console.log(`EduReach Server running on port ${PORT}`);
+    });
+
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
