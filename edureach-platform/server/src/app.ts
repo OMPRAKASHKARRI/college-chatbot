@@ -9,11 +9,14 @@ const app: Application = express();
 
 app.use(
   cors({
-    origin:true,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: [
+      "http://localhost:5173",
+      "https://college-chatbot-git-main-om-prakashs-projects-0ad3ab9d.vercel.app",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+    credentials: true,
+  })
 );
 
 app.use(express.json({ limit: "10mb" }));
