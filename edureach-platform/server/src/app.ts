@@ -27,8 +27,8 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
-app.use("/api/auth/login", authRoutes);
-app.use("/api/chat/chat", chatRoutes);
+app.use("/api/auth/", authRoutes);
+app.use("/api/chat/", chatRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, message: "Route not found." });
