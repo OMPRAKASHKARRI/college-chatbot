@@ -51,13 +51,10 @@ const getVectorStore = async () => {
 // ---- Initialize KB ----
 export const initializeKnowledgeBase = async (): Promise<void> => {
   const client = await getMongoClient();
-
-  // ✅ YOU MISSED THIS LINE
   const collection = client.db("edureach_db").collection("knowledge_docs");
 
   console.log("🚀 Re-indexing forced...");
 
-  // 🔥 DELETE OLD DATA
   await collection.deleteMany({});
 
   const loader = new TextLoader(
@@ -67,8 +64,8 @@ export const initializeKnowledgeBase = async (): Promise<void> => {
   const docs = await loader.load();
 
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1500,
-    chunkOverlap: 200,
+    chunkSize: 1200,
+    chunkOverlap: 150,
   });
 
   const splits = await splitter.splitDocuments(docs);
@@ -97,17 +94,15 @@ export const getRAGResponse = async (question: string): Promise<string> => {
 
     let contextDocs = docs;
 
-    // 🔥 Step 2: Fallback keyword search
+    // 🔥 Step 2: Smart fallback using keywords
     if (!docs || docs.length === 0) {
       const allDocs = await vectorStore.similaritySearch("", 10);
 
+      const keywords = question.toLowerCase().split(" ");
+
       contextDocs = allDocs.filter((doc) => {
         const text = doc.pageContent.toLowerCase();
-        return (
-          text.includes("admission") ||
-          text.includes("apply") ||
-          text.includes("eamcet")
-        );
+        return keywords.some((word) => text.includes(word));
       });
 
       console.log("Fallback docs:", contextDocs.length);
@@ -115,18 +110,23 @@ export const getRAGResponse = async (question: string): Promise<string> => {
 
     // 🧠 Step 3: Build context
     const context = contextDocs.map((d) => d.pageContent).join("\n\n");
+
+    if (!context || context.trim().length === 0) {
+      return "Information not available in EduReach database.";
+    }
+
     console.log("Context length:", context.length);
 
     // 🧠 Step 4: Prompt
     const prompt = `
 You are EduReach Bot.
 
-STRICT RULES:
+RULES:
 - Answer ONLY using the provided context.
-- DO NOT use any outside knowledge.
-- DO NOT generate general answers.
-- If the answer is not present in the context, reply exactly:
-  "Information not available in EduReach database."
+- Keep answers clear and structured.
+- Use bullet points where possible.
+- If answer is not in context, reply exactly:
+"Information not available in EduReach database."
 
 Context:
 ${context}
@@ -134,14 +134,14 @@ ${context}
 Question:
 ${question}
 
-Answer (use only context, in bullet points if possible):
+Answer:
 `;
 
     // 🤖 Step 5: Model
     const model = new ChatGroq({
       apiKey: getGroqKey(),
       model: "llama-3.1-8b-instant",
-      temperature: 0,
+      temperature: 0.2,
     });
 
     const response = await model.invoke(prompt);
@@ -150,7 +150,7 @@ Answer (use only context, in bullet points if possible):
       return "No response generated.";
     }
 
-    return response.content;
+    return response.content.trim();
   } catch (error) {
     console.error("RAG Error:", error);
     return "Something went wrong. Please try again.";
