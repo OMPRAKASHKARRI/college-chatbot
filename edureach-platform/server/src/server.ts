@@ -4,6 +4,10 @@ import connectDB from "./config/database.config.ts";
 import { initializeKnowledgeBase } from "./services/rag.services.ts";
 
 const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 await initializeKnowledgeBase();
 const start = async (): Promise<void> => {
   try {
