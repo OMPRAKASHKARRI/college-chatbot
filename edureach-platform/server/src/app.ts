@@ -12,6 +12,7 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://college-chatbot-git-main-om-prakashs-projects-0ad3ab9d.vercel.app",
+      "https://edureach-client.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
