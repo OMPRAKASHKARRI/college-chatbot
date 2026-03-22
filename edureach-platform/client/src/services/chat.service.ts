@@ -4,6 +4,7 @@ import API from "./api";
 // res.data = { success, data: { message } }
 // We return res.data.data so ChatDrawer gets { message: "answer text" }
 export const sendMessage = async (message: string) => {
-  const res = await API.post("/chat/message", { message });
+  
+  const res = await API.post("/api/chat/message", { message });
   return res.data.data; // { message: "answer text" }
 };
